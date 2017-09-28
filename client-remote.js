@@ -2,7 +2,7 @@ const net = require('net');
 const fs = require('fs');
 const path = require('path');
 
-const currentDir = fs.realpathSync('');
+const currentDir = __dirname;
 const port = 8124;
 const IP = '127.0.0.1';
 

@@ -17,7 +17,7 @@ function eventDistributor(client, data){
 }
 
 function fileCopy(argv_list){
-
+    fs.createReadStream(argv_list[1]).pipe(fs.createWriteStream(argv_list[2]));
 }
 
 function fileEncode(argv_list){
