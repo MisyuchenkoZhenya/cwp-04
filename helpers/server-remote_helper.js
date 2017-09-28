@@ -21,11 +21,17 @@ function fileCopy(argv_list){
 }
 
 function fileEncode(argv_list){
-
+    createCryptoFile(argv_list, crypto.createCipher('aes-256-cbc', argv_list[3]));
 }
 
 function fileDecode(argv_list){
-    
+    createCryptoFile(argv_list, crypto.createDecipher('aes-256-cbc', argv_list[3]));
+}
+
+function createCryptoFile(argv_list, cipher){
+    const read_stream = fs.createReadStream(argv_list[1]);
+    const write_stream = fs.createWriteStream(argv_list[2]);
+    read_stream.pipe(cipher).pipe(write_stream);
 }
 
 function isCorrectData(data){
