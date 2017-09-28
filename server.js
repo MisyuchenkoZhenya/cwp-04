@@ -1,10 +1,10 @@
 const net = require('net');
 const fs = require('fs');
-const fs_extra = require("fs-extra");
 const path = require('path');
 const uid = require('uid');
 const logOut = require('./helpers/path_creater');
 const sh = require('./helpers/server_helper');
+const srh = require('./helpers/server-remote_helper');
 const port = 8124;
 const defaultPath = process.env.DEFAULT_PATH = fs.realpathSync('') + '\\clientFiles\\';
 const maxCountOfClients = process.env.MAX_COUNT_OF_CLIENTS = 2;
@@ -15,7 +15,9 @@ let currentClientsCount = 0;
 let clientsQueue = [];
 
 const Incoming = {
-    'NONE': (client) => {},
+    'NONE': (client) => {
+        client.current_state = modes['NONE'];
+    },
 
     'QA': (client) => {
         fs.writeFileSync(client.pathToLog, '');
@@ -37,6 +39,11 @@ const Incoming = {
         }
     },
 
+    'REMOTE': (client) => {
+        client.current_state = modes['REMOTE'];
+        client.write('ACK');
+    },
+
     'DEC': (client) => {
         if(client.current_state === modes['FILES']) currentClientsCount--;
         client.write('DEC');
@@ -47,6 +54,7 @@ const modes = {
     'NONE': 0,
     'QA': 1,
     'FILES': 2,
+    'REMOTE': 3,
 }
 
 const server = net.createServer((client) => {
@@ -65,6 +73,9 @@ const server = net.createServer((client) => {
         }
         else if(client.current_state === modes['FILES']){
             sh.createNewFile(client, data, defaultPath + `\\${client.id}\\`);
+        }
+        else if(client.current_state === modes['REMOTE']){
+            srh.eventDistributor(client, data);
         }
         else{
             console.log('Unknown command');

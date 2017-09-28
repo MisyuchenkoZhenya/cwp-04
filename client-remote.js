@@ -1,23 +1,18 @@
 const net = require('net');
 const fs = require('fs');
 const path = require('path');
-const cf_h = require('./helpers/client-files_helper');
+
+const currentDir = fs.realpathSync('');
 const port = 8124;
 const IP = '127.0.0.1';
 
 const client = new net.Socket();
-let dirs, files = [];
 client.setEncoding('utf8');
 
 const Incoming = {
     'ACK': () => {
         console.log('Connected');
-        dirs = cf_h.getDirsFromArgv(process.argv.slice(2));
-        createDialog(client, dirs);
-    },
-
-    'NEXT': () => {
-        sendFileToServer(client);
+        createDialog(client);
     },
 
     'DEC': () => {
@@ -26,7 +21,7 @@ const Incoming = {
 };
 
 client.connect({host: IP, port: port}, () => {
-    client.write('FILES');
+    client.write('REMOTE');
 });
 
 client.on('data', (data) => {
@@ -43,17 +38,8 @@ client.on('close', () => {
     console.log('Connection closed');
 });
 
-function createDialog(client, dirs) {
-    files = cf_h.readFilePaths(dirs);
-    sendFileToServer(client);
-}
-
-function sendFileToServer(client){
-    if(files.length > 0){
-        const message = cf_h.createMessage(files.pop());
-        client.write(JSON.stringify(message));
-    }
-    else{
-        client.write('DEC');
-    }
+function createDialog(client) {
+    client.write(`COPY ${currentDir + '\\temp\\file1.txt'} ${currentDir + '\\file1COPY.txt'}`);
+    
+    client.write('DEC');
 }
