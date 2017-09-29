@@ -1,6 +1,8 @@
 const fs = require('fs');
 const crypto = require('crypto');
 
+const cryptCoding = 'aes-256-cbc';
+
 const handlers = {
     'COPY': (argv_list) => { fileCopy(argv_list) },
     'ENCODE': (argv_list) => { fileEncode(argv_list) },
@@ -9,7 +11,7 @@ const handlers = {
 
 function eventDistributor(client, data){
     if(isCorrectData(data)){
-        checkIncomingArgs(data);
+        checkIncomingArgs(client, data);
     }
     else{
         console.log('The entered data is incorrect');
@@ -21,11 +23,11 @@ function fileCopy(argv_list){
 }
 
 function fileEncode(argv_list){
-    createCryptoFile(argv_list, crypto.createCipher('aes-256-cbc', argv_list[3]));
+    createCryptoFile(argv_list, crypto.createCipher(cryptCoding, argv_list[3]));
 }
 
 function fileDecode(argv_list){
-    createCryptoFile(argv_list, crypto.createDecipher('aes-256-cbc', argv_list[3]));
+    createCryptoFile(argv_list, crypto.createDecipher(cryptCoding, argv_list[3]));
 }
 
 function createCryptoFile(argv_list, cipher){
@@ -47,9 +49,10 @@ function isCorrectData(data){
     return false;
 }
 
-function checkIncomingArgs(data){
+function checkIncomingArgs(client, data){
     let list = data.split(' ');
     handlers[list[0]](list);
+    client.write('NEXT');
 }
 
 module.exports.eventDistributor = eventDistributor;
